@@ -307,9 +307,10 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args):
     losses = AverageMeter('Loss', ':.4e')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
+    throughput = AverageMeter('Images/sec', ':6.2f')
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, data_time, losses, top1, top5],
+        [batch_time, data_time, losses, top1, top5, throughput],
         prefix="Epoch: [{}]".format(epoch))
 
     # switch to train mode
@@ -341,6 +342,10 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args):
 
         # measure elapsed time
         batch_time.update(time.time() - end)
+        if batch_time.val > 0:
+            imgs_per_sec = images.size(0) / batch_time.val
+            throughput.update(imgs_per_sec, images.size(0))
+
         end = time.time()
 
         if i % args.print_freq == 0:
